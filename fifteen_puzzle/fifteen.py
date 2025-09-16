@@ -1,5 +1,6 @@
 import random
 import copy
+import sys
 
 from util import Node, StackFrontier, QueueFrontier
 
@@ -55,9 +56,9 @@ class Puzzle():
         dirs = 'UDLR'
         for i in range(num_moves):
             direction = dirs[random.randint(0, 3)]
-            print(direction)
+            # print(direction)
             self.make_move(direction)
-            print(puzzle)
+            # print(puzzle)
 
     def neighbors(self):
         result = []
@@ -91,7 +92,8 @@ class Puzzle():
         frontier = QueueFrontier()
         frontier.add(start)
 
-        explored = set() # Make this a list and scan for duplicates?
+        # Explored is a set of String'd versions of the board.
+        explored = set()
 
         while True:
             # If nothing left in frontier, then no path
@@ -103,22 +105,39 @@ class Puzzle():
 
             # If node is the goal, then we have a solution            
             if str(current_node.state) == str(goal):
-                # TODO
-                print('win')
+                actions = []
+                cells = []
+                while current_node.parent is not None:
+                    actions.append(current_node.action)
+                    cells.append(current_node.state)
+                    current_node = current_node.parent
+                actions.reverse()
+                cells.reverse()
+                self.solution = (actions, cells)
                 return
+            
+            # Mark node as explored
+            explored.add(str(current_node.state))
 
             # Add neighbors to the frontier.
             for action, state in current_node.state.neighbors():
                 # TODO: Not going to work.  'in' likely doing ref comparison.
-                if not frontier.contains_state(state) and state not in explored: 
+                if not frontier.contains_state(state) and str(state) not in explored: 
                     child = Node(state=state, parent=current_node, action=action)
                     frontier.add(child)
 
 
 puzzle = Puzzle()
-print(puzzle)
+# print(puzzle)
           
-puzzle.scramble(3)
-
-puzzle.solve()
+puzzle.scramble(int(sys.argv[1]))
 print(puzzle)
+puzzle.solve()
+(actions, cells) = puzzle.solution
+# for i in range(len(actions)):
+#     print(actions[i])
+#     print(cells[i])
+
+for (action, cell) in zip(actions, cells):
+    print(action)
+    print(cell)
